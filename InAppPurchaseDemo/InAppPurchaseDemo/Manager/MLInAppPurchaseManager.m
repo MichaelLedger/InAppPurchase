@@ -48,6 +48,8 @@
     // MBZ06 非消耗型项目(一次购买即可)
     // MXRMANUALSUBSCRIBE001 MXRVIP40 MXRVIP68 非续期订阅
     // MXRAUTOSUBSCRIBE001  MXRAUTOSUBSCRIBE002 自动续期订阅
+    
+    // 沙盒支付账号：jianshun.zhou@mxrcorp.com 密码：mxrTest@123
     NSSet *productIdentifiers = [NSSet setWithObjects:@"MXRAUTOSUBSCRIBE002", nil];
     self.productRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:productIdentifiers];
     self.productRequest.delegate = self;
