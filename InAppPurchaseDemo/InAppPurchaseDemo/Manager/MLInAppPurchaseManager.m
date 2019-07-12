@@ -50,6 +50,20 @@
     // MXRAUTOSUBSCRIBE001  MXRAUTOSUBSCRIBE002 自动续期订阅
     
     // 沙盒支付账号：jianshun.zhou@mxrcorp.com 密码：mxrTest@123
+    
+    /*
+     App 专用共享密钥
+    
+    App 专用共享密钥是用于接收此 App 自动续订订阅收据的唯一代码。如果您需要将此 App 转让给其他开发人员，或者需要将主共享密钥设置为专用，可能需要使用 App 专用共享密钥。
+     
+     主共享密钥
+     
+     主共享密钥是用于接收您所有自动续订订阅收据的唯一代码。要测试或提供自动续订订阅，您必须使用主共享密钥或为每个 App 使用一个 App 专用共享密钥。
+     
+     5dd23ad77f5f4e7b95bd3cd0f365cea3    2017年6月21日之前   可以重新生成
+     
+     大家叫后台加个验证，如果苹果验证返回21004的话（21004 你提供的共享密钥和账户的共享密钥不一致），就加上password字段去验证，可以成功。
+     */
     NSSet *productIdentifiers = [NSSet setWithObjects:@"MXRAUTOSUBSCRIBE002", nil];
     self.productRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:productIdentifiers];
     self.productRequest.delegate = self;
