@@ -52,6 +52,13 @@
     // 沙盒支付账号：jianshun.zhou@mxrcorp.com 密码：mxrTest@123
     
     // 启用针对自动续期订阅的服务器通知 https://help.apple.com/app-store-connect/#/dev0067a330b
+    // https://developer.apple.com/documentation/storekit/in-app_purchase/enabling_server-to-server_notifications?language=objc
+    
+    /*
+     Server-to-server notifications (previously known as statusUpdateNotifications) are a service for auto-renewable subscriptions. The App Store sends notifications to your server of real-time changes in a subscription's status.
+     Using the server-to-server notification service is optional but recommended, especially if you offer subscription services across multiple platforms and you need to keep the subscription records updated. After you set up your server, you can start receiving notifications at any time by adding a server URL in App Store Connect.
+     Use notifications along with receipt validation to validate a user's current subscription status and provide them with services or promotional offers based on that status.
+     */
     
     /*
      主共享密钥
