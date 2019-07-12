@@ -52,18 +52,75 @@
     // 沙盒支付账号：jianshun.zhou@mxrcorp.com 密码：mxrTest@123
     
     /*
-     App 专用共享密钥
-    
-    App 专用共享密钥是用于接收此 App 自动续订订阅收据的唯一代码。如果您需要将此 App 转让给其他开发人员，或者需要将主共享密钥设置为专用，可能需要使用 App 专用共享密钥。
-     
      主共享密钥
      
      主共享密钥是用于接收您所有自动续订订阅收据的唯一代码。要测试或提供自动续订订阅，您必须使用主共享密钥或为每个 App 使用一个 App 专用共享密钥。
      
      5dd23ad77f5f4e7b95bd3cd0f365cea3    2017年6月21日之前   可以重新生成
      
+     App 专用共享密钥
+    
+     App 专用共享密钥是用于接收此 App 自动续订订阅收据的唯一代码。如果您需要将此 App 转让给其他开发人员，或者需要将主共享密钥设置为专用，可能需要使用 App 专用共享密钥。
+     
      大家叫后台加个验证，如果苹果验证返回21004的话（21004 你提供的共享密钥和账户的共享密钥不一致），就加上password字段去验证，可以成功。
+     
+     沙盒账号在购买消耗性项目也需要添加password字段验证，非沙盒账号购买非自动续费项目无需验证password
      */
+    
+    /*
+     Read the Receipt Data
+     
+     To retrieve the receipt data, use the appStoreReceiptURL method of NSBundle to locate the app’s receipt, and then read the entire file. Send this data to your server—as with all interactions with your server, the details are your responsibility.
+     
+     // Load the receipt from the app bundle.
+     NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
+     NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
+     if (!receipt) {  No local receipt -- handle the error.  }
+     
+     //base64加密字符串
+     NSString *receiptString = [receipt base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
+
+    ... Send the receipt data to your server ...
+     */
+    
+    /*
+     Validating Receipts With the App Store https://developer.apple.com/library/archive/releasenotes/General/ValidateAppStoreReceipt/Chapters/ValidateRemotely.html
+     
+     On your server, create a JSON object with the following keys:
+     
+     Key              Value
+     receipt-data  The base64 encoded receipt data.
+     
+     password      Only used for receipts that contain auto-renewable subscriptions. Your app’s shared secret (a hexadecimal string).
+     
+     exclude-old-transactions
+     
+     Only used for iOS7 style app receipts that contain auto-renewable or non-renewing subscriptions. If value is true, response includes only the latest renewal transaction for any subscriptions.
+     
+     Submit this JSON object as the payload of an HTTP POST request. In the test environment, use https://sandbox.itunes.apple.com/verifyReceipt as the URL. In production, use https://buy.itunes.apple.com/verifyReceipt as the URL.
+     
+     我们需要把Receipt发送給苹果的苹果的服务器验证用户的购买信息是否真实:
+     
+     在测试服务器中，发送receipt苹果的测试服务器
+     （ https://sandbox.itunes.apple.com/verifyReceipt ）
+     验证在正式服务器中(已上线Appstore)，发送receipt到苹果的正式服务器
+     （ https://buy.itunes.apple.com/verifyReceipt )
+     
+     当我们把应用提交给苹果审核时，苹果也是在sandbox环境购买，其产生的购买凭证，也只能连接苹果的测试验证服务器
+     所以我们可以先发到苹果的正式服务器验证，如果苹果返回21007，则再一次连接测试服务器进行验证;或者两个同时进行验证，一个通过即可。
+   */
+    
+    /**
+     * 21000 App Store不能读取你提供的JSON对象
+     * 21002 receipt-data域的数据有问题
+     * 21003 receipt无法通过验证
+     * 21004 提供的shared secret不匹配你账号中的shared secret
+     * 21005 receipt服务器当前不可用
+     * 21006 receipt合法，但是订阅已过期。服务器接收到这个状态码时，receipt数据仍然会解码并一起发送
+     * 21007 receipt是Sandbox receipt，但却发送至生产系统的验证服务
+     * 21008 receipt是生产receipt，但却发送至Sandbox环境的验证服务
+     */
+    
     NSSet *productIdentifiers = [NSSet setWithObjects:@"MXRAUTOSUBSCRIBE002", nil];
     self.productRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:productIdentifiers];
     self.productRequest.delegate = self;
@@ -74,7 +131,7 @@
     DLOG_METHOD
     [MLDefaultQueue.transactions enumerateObjectsUsingBlock:^(SKPaymentTransaction * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         switch (obj.transactionState) {
-            case SKPaymentTransactionStatePurchased:
+            case SKPaymentTransactionStatePurchased://购买成功
                 NSLog(@"Transaction is in queue, user has been charged.  Client should complete the transaction.");
                 [MLDefaultQueue finishTransaction:obj];
                 break;
@@ -90,7 +147,7 @@
                 NSLog(@"Transaction was cancelled or failed before being added to the server queue.");
                 [MLDefaultQueue finishTransaction:obj];
                 break;
-            case SKPaymentTransactionStateDeferred:
+            case SKPaymentTransactionStateDeferred://等待确认，儿童模式需要询问家长同意
                 NSLog(@"The transaction is in the queue, but its final status is pending external action.");
                 [MLDefaultQueue finishTransaction:obj];
                 break;
