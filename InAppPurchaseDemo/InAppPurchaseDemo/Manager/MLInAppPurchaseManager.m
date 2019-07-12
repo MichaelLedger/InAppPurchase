@@ -51,6 +51,8 @@
     
     // 沙盒支付账号：jianshun.zhou@mxrcorp.com 密码：mxrTest@123
     
+    // 启用针对自动续期订阅的服务器通知 https://help.apple.com/app-store-connect/#/dev0067a330b
+    
     /*
      主共享密钥
      
